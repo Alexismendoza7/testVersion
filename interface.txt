@@ -1,4 +1,12 @@
-{
-	"username": "AlexisMendoza7",
-	"contraseña": "Trompudazo1"
-}
+userInterface:{
+	userID:String,
+	username:String,
+	password:String,
+	age:Number
+	},
+userInterface2:{
+	userID:String,
+	username:String,
+	password:String,
+	age:Number
+	}
