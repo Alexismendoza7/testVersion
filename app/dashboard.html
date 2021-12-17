@@ -1,0 +1,86 @@
+<link rel="stylesheet" href="dashboard.css">
+<script src="https://kit.fontawesome.com/949e6c9c9b.js" crossorigin="anonymous"></script>
+<body>   
+
+  <div class="container">
+    <div class="navbar">
+      <img src="../assets/login.png" class="logo">
+      <nav>
+        <ul id="menuList">
+          <li><a>Home</a></li>
+          <li><a>States</a></li>
+          <li><a>Services</a></li>
+          <li><a>Others</a></li>
+        </ul>
+      </nav>
+      <img src="../assets/list.svg" class="menu-icon" onclick="togglemenu()">
+    </div>
+  </div>
+  <div class="text-container">
+    <p>Hello</p>
+    <p class="intro">Welcome to Beyond Technology!</p>
+  </div>
+
+
+  <div class="middle" style="height: 275px;">
+
+  <a class="btn" href="#">
+    <i class="fab">Automation</i>
+  </a>
+
+  <a class="btn" href="#">
+    <i class="fab">DataBase</i>
+  </a>
+
+  <a class="btn" href="#">
+    <i class="fab">Devices</i>
+  </a>
+
+  <a class="btn" href="#">
+    <i class="fab">Services</i>
+
+  </a> 
+  <a class="btn" href="#">
+      <i class="fab">Workflow</i>
+  </a>
+    
+  <a class="btn" href="#">
+      <i class="fab">Nodes</i>
+  </a>
+
+  <a class="btn" href="#">
+      <i class="fab">Networks</i>
+  </a>
+
+  <a class="btn" href="file:///private/var/folders/ht/lbh38x2n53g8hm87qglr4vwr0000gp/T/diff.html">
+      <i class="fab">Control de Versiones</i>
+
+  </a>
+  
+  </div>
+  
+  
+  
+
+    <script>
+      var menuList = document.getElementById("menuList");
+      menuList.style.maxHeight = "0px";
+      function togglemenu(){
+        if(menuList.style.maxHeight="0px"){
+          menuList.style.maxHeight="130px"
+        }
+        else{
+          menuList.style.maxHeight="0px";
+        }
+      }
+    </script>
+  <footer>
+    <div class="footer-content">
+      <h3>Thank you for visit us</h3>
+      <p>We will continue working to provide a better service to you</p>
+      <div class="footer-buttom">
+        <p>copyight &copy;2021 codeOpacity.</p>
+      </div>
+    </div>
+  </footer>
+</body>
