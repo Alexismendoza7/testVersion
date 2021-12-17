@@ -85,7 +85,7 @@ nav ul li a:hover{
   .text-container p:nth-child(1){
     font-family: "calibri"; 
     color: #6d6d6d;
-    font-size: 22px; 
+    font-size: 26px; 
   }  
   .text-container p:nth-child(2){
     font-family: "Tahoma"; 
@@ -141,7 +141,7 @@ nav ul li a:hover{
 
   .btn i{ 
     line-height: 110px;
-    font-size: 14px; 
+    font-size: 16px; 
   }
 
   .btn:hover i{
@@ -149,7 +149,7 @@ nav ul li a:hover{
     position: relative;
     overflow: hidden;
     line-height: 120px;
-    font-size: 16px;
+    font-size: 22px;
     background: #3e9b9f;
     color: #f1f1f1;
 
