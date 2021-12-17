@@ -1,12 +1,16 @@
 <!doctype html>
 <html lang="en">
-	
+<link rel="stylesheet" href="../testVersion/app/dashboard.css">
 <head>
 	<meta charset="utf-8">
 	<title>Pretty Diff</title>
 	<style>
 	body {
 		text-align: center;
+	}
+	
+	html {
+	background-color: #dcecd9;
 	}
 	#wrapper {
 		display: inline-block;
@@ -62,6 +66,27 @@
 	</style>
 </head>
 <body>
+	<div class="container">
+		<div class="navbar">
+		  <img src="../assets/login.png" class="logo">
+		  <nav>
+			<ul id="menuList">
+			  <li><a>Home</a></li> 
+			  <li><a>About us</a></li> 
+			</ul>
+		  </nav>
+		  <img src="../assets/list.svg" class="menu-icon" onclick="togglemenu()">
+		</div>
+	  </div>
+	  <footer>
+		<div class="footer-content">
+		  <h3>Thank you for visit us</h3>
+		  <p>We will continue working to provide a better service to you</p>
+		  <div class="footer-buttom">
+			<p>copyight &copy;2021 codeOpacity.</p>
+		  </div>
+		</div>
+	  </footer>
 <div id="wrapper">
 {{diff}}
 </div>
