@@ -34,6 +34,18 @@ function generatePrettyDiff( parsedDiff ) {
 
 	for ( var file in parsedDiff ) {
 		diffHtml +=
+		"<div class='container'>" +
+				"<div class='navbar'>" +
+				  "<img src='../assets/login.png' class='logo'>" +
+				  "<nav>" +
+					"<ul id='menuList'>" +
+					  "<li><a>Home</a></li>" +
+					  "<li><a>About us</a></li>" +
+					"</ul>" +
+				  "</nav>" +
+				  "<img src='../assets/list.svg' class='menu-icon' onclick='togglemenu()'>"+
+				"</div>" +
+			  "</div>" +
 			"<h2>" +
 				file +
 				"<button class='copy' onclick=" +
@@ -75,3 +87,13 @@ var markUpDiff = function() {
 		}).join( "\n" );
 	};
 }();
+ 
+	//   <footer>
+	// 	<div class="footer-content">
+	// 	  <h3>Thank you for visit us</h3>
+	// 	  <p>We will continue working to provide a better service to you</p>
+	// 	  <div class="footer-buttom">
+	// 		<p>copyight &copy;2021 codeOpacity.</p>
+	// 	  </div>
+	// 	</div>
+	//   </footer>
