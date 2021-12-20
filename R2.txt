@@ -1,0 +1,892 @@
+policy-options {
+ prefix-list router-ipv4 {
+ apply-path “interfaces <*> unit <*> family inet address <*>”;
+ }
+ prefix-list bgp-neighbors {
+ apply-path “protocols bgp group <*> neighbor <*>”;
+ }
+ prefix-list ospf {
+ 224.0.0.5/32;
+ 224.0.0.6/32;
+ }
+ prefix-list rfc1918 {
+ 10.0.0.0/8;
+ 172.16.0.0/12;
+ 192.168.0.0/16;
+ }
+ prefix-list rip {
+ 224.0.0.9/32;
+ }
+ prefix-list vrrp {
+ 224.0.0.18/32;
+ }
+ prefix-list multicast-all-routers {
+ 224.0.0.2/32;
+ }
+ prefix-list router-ipv4-logical-systms {
+ apply-path “logical-systems <*> interfaces <*> unit <*> family inet address
+<*>”;
+ }
+ prefix-list bgp-neighbors-logical-systems {
+ apply-path “logical-systems <*> protocols bgp group <*> neighbor <*>”;
+ }
+ prefix-list radius-servers {
+ apply-path “system radius-server <*>”;
+ }
+ prefix-list tacas-servers {
+ apply-path “system tacplus-server <*>”;
+ }
+ prefix-list ntp-server {
+ apply-path “system ntp server <*>”;
+ }
+ prefix-list snmp-client-lists {
+ apply-path “snmp client-list <*> <*>”;
+ }
+ prefix-list snmp-community-clients {
+ apply-path “snmp community <*> clients <*>”;
+ }
+ prefix-list localhost {
+ 127.0.0.1/32;
+ }
+ prefix-list ntp-server-peers {
+ apply-path “system ntp peer <*>”;
+ }
+ prefix-list dns-servers {
+ apply-path “system name-server <*>”;
+ }
+}
+firewall {
+ family inet {
+ prefix-action management-police-set {
+ apply-flags omit;
+ policer management-1m;
+ count;
+ filter-specific;
+ subnet-prefix-length 24;
+ destination-prefix-length 32;
+ }
+ prefix-action management-high-police-set {
+ apply-flags omit;
+ policer management-5m;
+ count;
+ filter-specific;
+ subnet-prefix-length 24;
+ destination-prefix-length 32;
+ }
+ filter accept-bgp {
+ apply-flags omit;
+ term accept-bgp {
+ from {
+source-prefix-list {
+ bgp-neighbors;
+ bgp-neighbors-logical-systems;
+ }
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ protocol tcp;
+ port bgp;
+ }
+ then {
+ count accept-bgp;
+ accept;
+ }
+ }
+ }
+ filter accept-ospf {
+ apply-flags omit;
+ term accept-ospf {
+ from {
+ source-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ destination-prefix-list {
+ router-ipv4;
+ ospf;
+ router-ipv4-logical-systms;
+ }
+ protocol ospf;
+ }
+ then {
+ count accept-ospf;
+ accept;
+ }
+ }
+ }
+ filter accept-rip {
+ apply-flags omit;
+ term accept-rip {
+ from {
+ source-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ destination-prefix-list {
+ rip;
+ }
+ protocol udp;
+ destination-port rip;
+}
+ then {
+ count accept-rip;
+ accept;
+ }
+ }
+ term accept-rip-igmp {
+ from {
+ source-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ destination-prefix-list {
+ rip;
+ }
+ protocol igmp;
+ }
+ then {
+ count accept-rip-igmp;
+ accept;
+ }
+ }
+ }
+ filter accept-vrrp {
+ apply-flags omit;
+ term accept-vrrp {
+ from {
+ source-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ destination-prefix-list {
+ vrrp;
+ }
+ protocol [ vrrp ah ];
+ }
+ then {
+ count accept-vrrp;
+ accept;
+ }
+ }
+ }
+ filter accept-icmp {
+ apply-flags omit;
+ term no-icmp-fragments {
+ from {
+ is-fragment;
+ protocol icmp;
+ }
+ then {
+ count no-icmp-fragments;
+ log;
+ discard;
+ }
+ }
+ term accept-icmp {
+ from {
+ protocol icmp;
+ ttl-except 1;
+ icmp-type [ echo-reply echo-request time-exceeded unreachable sourcequench router-advertisement parameter-problem ];
+ }
+ then {
+ policer management-5m;
+ count accept-icmp;
+ accept;
+ }
+ }
+ }
+ filter accept-ssh {
+ apply-flags omit;
+ term accept-ssh {
+ from {
+ source-prefix-list {
+ rfc1918;
+ }
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ protocol tcp;
+ destination-port ssh;
+ }
+ then {
+ policer management-5m;
+ count accept-ssh;
+ accept;
+ }
+ }
+ }
+ filter accept-snmp {
+ apply-flags omit;
+ term accept-snmp {
+ from {
+ source-prefix-list {
+ snmp-client-lists;
+ snmp-community-clients;
+ }
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+protocol udp;
+ destination-port snmp;
+ }
+ then {
+ policer management-5m;
+ count accept-snmp;
+ accept;
+ }
+ }
+ }
+ filter accept-ntp {
+ apply-flags omit;
+ term accept-ntp {
+ from {
+ source-prefix-list {
+ ntp-server;
+ }
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ protocol udp;
+ port ntp;
+ }
+ then {
+ policer management-1m;
+ count accept-ntp;
+ accept;
+ }
+ }
+ term accept-ntp-peer {
+ from {
+ source-prefix-list {
+ ntp-server-peers;
+ }
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ protocol udp;
+ destination-port ntp;
+ }
+ then {
+ policer management-1m;
+ count accept-ntp-peer;
+ accept;
+ }
+ }
+ term accept-ntp-server {
+ from {
+ source-prefix-list {
+rfc1918;
+ }
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ protocol udp;
+ destination-port ntp;
+ }
+ then {
+ policer management-1m;
+ count accept-ntp-server;
+ accept;
+ }
+ }
+ }
+ filter accept-web {
+ apply-flags omit;
+ term accept-web {
+ from {
+ source-prefix-list {
+ rfc1918;
+ }
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ protocol tcp;
+ destination-port [ http https ];
+ }
+ then {
+ policer management-5m;
+ count accept-web;
+ accept;
+ }
+ }
+ }
+ filter discard-all {
+ apply-flags omit;
+ term discard-ip-options {
+ from {
+ ip-options any;
+ }
+ then {
+ count discard-ip-options;
+ log;
+ syslog;
+ discard;
+ }
+ }
+ term discard-TTL_1-unknown {
+from {
+ ttl 1;
+ }
+ then {
+ count discard-all-TTL_1-unknown;
+ log;
+ syslog;
+ discard;
+ }
+ }
+ term discard-tcp {
+ from {
+ protocol tcp;
+ }
+ then {
+ count discard-tcp;
+ log;
+ syslog;
+ discard;
+ }
+ }
+ term discard-netbios {
+ from {
+ protocol udp;
+ destination-port 137;
+ }
+ then {
+ count discard-netbios;
+ log;
+ syslog;
+ discard;
+ }
+ }
+ term discard-udp {
+ from {
+ protocol udp;
+ }
+ then {
+ count discard-udp;
+ log;
+ syslog;
+ discard;
+ }
+ }
+ term discard-icmp {
+ from {
+ protocol icmp;
+ }
+ then {
+ count discard-icmp;
+ log;
+syslog;
+ discard;
+ }
+ }
+ term discard-unknown {
+ then {
+ count discard-unknown;
+ log;
+ syslog;
+ discard;
+ }
+ }
+ }
+ filter accept-traceroute {
+ apply-flags omit;
+ term accept-traceroute-udp {
+ from {
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ protocol udp;
+ ttl 1;
+ destination-port 33435-33450;
+ }
+ then {
+ policer management-1m;
+ count accept-traceroute-udp;
+ accept;
+ }
+ }
+ term accept-traceroute-icmp {
+ from {
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ protocol icmp;
+ ttl 1;
+ icmp-type [ echo-request timestamp time-exceeded ];
+ }
+ then {
+ policer management-1m;
+ count accept-traceroute-icmp;
+ accept;
+ }
+ }
+ term accept-traceroute-tcp {
+ from {
+ destination-prefix-list {
+ router-ipv4;
+router-ipv4-logical-systms;
+ }
+ protocol tcp;
+ ttl 1;
+ }
+ then {
+ policer management-1m;
+ count accept-traceroute-tcp;
+ accept;
+ }
+ }
+ }
+ filter accept-igp {
+ apply-flags omit;
+ term accept-ospf {
+ filter accept-ospf;
+ }
+ term accept-rip {
+ filter accept-rip;
+ }
+ }
+ filter accept-common-services {
+ apply-flags omit;
+ term accept-icmp {
+ filter accept-icmp;
+ }
+ term accept-traceroute {
+ filter accept-traceroute;
+ }
+ term accept-ssh {
+ filter accept-ssh;
+ }
+ term accept-snmp {
+ filter accept-snmp;
+ }
+ term accept-ntp {
+ filter accept-ntp;
+ }
+ term accept-web {
+ filter accept-web;
+ }
+ term accept-dns {
+ filter accept-dns;
+ }
+ }
+ filter accept-bfd {
+ apply-flags omit;
+ term accept-bfd {
+from {
+ source-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ protocol udp;
+ source-port 49152-65535;
+ destination-port 3784-3785;
+ }
+ then {
+ count accept-bfd;
+ accept;
+ }
+ }
+ }
+ filter accept-ldp {
+ apply-flags omit;
+ term accept-ldp-discover {
+ from {
+ source-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ destination-prefix-list {
+ multicast-all-routers;
+ }
+ protocol udp;
+ destination-port ldp;
+ }
+ then {
+ count accept-ldp-discover;
+ accept;
+ }
+ }
+ term accept-ldp-unicast {
+ from {
+ source-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ protocol tcp;
+port ldp;
+ }
+ then {
+ count accept-ldp-unicast;
+ accept;
+ }
+ }
+ term accept-tldp-discover {
+ from {
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ protocol udp;
+ destination-port ldp;
+ }
+ then {
+ count accept-tldp-discover;
+ accept;
+ }
+ }
+ term accept-ldp-igmp {
+ from {
+ source-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ destination-prefix-list {
+ multicast-all-routers;
+ }
+ protocol igmp;
+ }
+ then {
+ count accept-ldp-igmp;
+ accept;
+ }
+ }
+ }
+ filter accept-ftp {
+ apply-flags omit;
+ term accept-ftp {
+ from {
+ source-prefix-list {
+ rfc1918;
+ }
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+protocol tcp;
+ port [ ftp ftp-data ];
+ }
+ then {
+ policer management-5m;
+ count accept-ftp;
+ accept;
+ }
+ }
+ }
+ filter accept-rsvp {
+ apply-flags omit;
+ term accept-rsvp {
+ from {
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ protocol rsvp;
+ }
+ then {
+ count accept-rsvp;
+ accept;
+ }
+ }
+ }
+ filter accept-radius {
+ apply-flags omit;
+ term accept-radius {
+ from {
+ source-prefix-list {
+ radius-servers;
+ }
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ protocol udp;
+ source-port [ radacct radius ];
+ tcp-established;
+ }
+ then {
+ policer management-1m;
+ count accept-radius;
+ accept;
+ }
+ }
+ }
+ filter accept-tacas {
+ apply-flags omit;
+ term accept-tacas {
+from {
+ source-prefix-list {
+ tacas-servers;
+ }
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ protocol [ tcp udp ];
+ source-port [ tacacs tacacs-ds ];
+ tcp-established;
+ }
+ then {
+ policer management-1m;
+ count accept-tacas;
+ accept;
+ }
+ }
+ }
+ filter accept-remote-auth {
+ apply-flags omit;
+ term accept-radius {
+ filter accept-radius;
+ }
+ term accept-tacas {
+ filter accept-tacas;
+ }
+ }
+ filter accept-telnet {
+ apply-flags omit;
+ term accept-telnet {
+ from {
+ source-prefix-list {
+ rfc1918;
+ }
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ protocol tcp;
+ destination-port telnet;
+ }
+ then {
+ policer management-1m;
+ count accept-telnet;
+ accept;
+ }
+ }
+ }
+ filter accept-dns {
+ apply-flags omit;
+term accept-dns {
+ from {
+ source-prefix-list {
+ dns-servers;
+ }
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ protocol udp;
+ source-port 53;
+ }
+ then {
+ policer management-1m;
+ count accept-dns;
+ accept;
+ }
+ }
+ }
+ filter accept-ldp-rsvp {
+ apply-flags omit;
+ term accept-ldp {
+ filter accept-ldp;
+ }
+ term accept-rsvp {
+ filter accept-rsvp;
+ }
+ }
+ filter accept-established {
+ apply-flags omit;
+ term accept-established-tcp-ssh {
+ from {
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ source-port ssh;
+ tcp-established;
+ }
+ then {
+ policer management-5m;
+ count accept-established-tcp-ssh;
+ accept;
+ }
+ }
+ term accept-established-tcp-ftp {
+ from {
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ source-port ftp;
+tcp-established;
+ }
+ then {
+ policer management-5m;
+ count accept-established-tcp-ftp;
+ accept;
+ }
+ }
+ term accept-established-tcp-ftp-data-syn {
+ from {
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ source-port ftp-data;
+ tcp-initial;
+ }
+ then {
+ policer management-5m;
+ count accept-established-tcp-ftp-data-syn;
+ accept;
+ }
+ }
+ term accept-established-tcp-ftp-data {
+ from {
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ source-port ftp-data;
+ tcp-established;
+ }
+ then {
+ policer management-5m;
+ count accept-established-tcp-ftp-data;
+ accept;
+ }
+ }
+ term accept-established-tcp-telnet {
+ from {
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ source-port telnet;
+ tcp-established;
+ }
+ then {
+ policer management-5m;
+ count accept-established-tcp-telnet;
+ accept;
+}
+ }
+ term accept-established-tcp-fetch {
+ from {
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ source-port [ http https ];
+ tcp-established;
+ }
+ then {
+ policer management-5m;
+ count accept-established-tcp-fetch;
+ accept;
+ }
+ }
+ term accept-established-udp-ephemeral {
+ from {
+ destination-prefix-list {
+ router-ipv4;
+ router-ipv4-logical-systms;
+ }
+ protocol udp;
+ destination-port 49152-65535;
+ }
+ then {
+ policer management-5m;
+ count accept-established-udp-ephemeral;
+ accept;
+ }
+ }
+ }
+ filter accept-all {
+ apply-flags omit;
+ term accept-all-tcp {
+ from {
+ protocol tcp;
+ }
+ then {
+ count accept-all-tcp;
+ log;
+ syslog;
+ accept;
+ }
+ }
+ term accept-all-udp {
+ from {
+ protocol udp;
+ }
+ then {
+ count accept-all-udp;
+log;
+ syslog;
+ accept;
+ }
+ }
+ term accept-all-igmp {
+ from {
+ protocol igmp;
+ }
+ then {
+ count accept-all-igmp;
+ log;
+ syslog;
+ accept;
+ }
+ }
+ term accept-icmp {
+ from {
+ protocol icmp;
+ }
+ then {
+ count accept-all-icmp;
+ log;
+ syslog;
+ accept;
+ }
+ }
+ term accept-all-unknown {
+ then {
+ count accept-all-unknown;
+ log;
+ syslog;
+ accept;
+ }
+ }
+ }
+ }
+ policer management-1m {
+ apply-flags omit;
+ if-exceeding {
+ bandwidth-limit 1m;
+ burst-size-limit 625k;
+ }
+ then discard;
+ }
+ policer management-5m {
+ apply-flags omit;
+ if-exceeding {
+ bandwidth-limit 5m;
+ burst-size-limit 625k;
+ }
+ then discard;
+ }
+}
