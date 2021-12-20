@@ -6,7 +6,7 @@ policy-options {
  apply-path “protocols bgp group <*> neighbor <*>”;
  }
  prefix-list ospf {
- 224.0.0.5/32;
+ 224.0.0.12/32;
  224.0.0.6/32;
  }
  prefix-list rfc1918 {
@@ -46,7 +46,7 @@ policy-options {
  apply-path “snmp community <*> clients <*>”;
  }
  prefix-list localhost {
- 127.0.0.1/32;
+ 127.0.0.1/64;
  }
  prefix-list ntp-server-peers {
  apply-path “system ntp peer <*>”;
@@ -233,7 +233,7 @@ protocol udp;
  destination-port snmp;
  }
  then {
- policer management-5m;
+ policer management-4m;
  count accept-snmp;
  accept;
  }

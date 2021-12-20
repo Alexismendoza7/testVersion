@@ -4,7 +4,7 @@ logical-systems {
     ge-1/1/5 {
      unit 0 {
       family inet {
-       address 10.0.2.4/30;
+       address 10.0.2.6/30;
      }
       family iso;
       family mpls;
@@ -17,7 +17,7 @@ logical-systems {
        input-list [ accept-common-services accept-ospf accept-rip
 accept-bfd accept-bgp accept-ldp accept-rsvp discard-all ];
 	}
-	 address 10.0.3.4/32;
+	 address 10.0.3.8/32;
  }
 	 family iso {
 	    address 49.0002.0100.0000.3004.00;
@@ -40,7 +40,7 @@ accept-bfd accept-bgp accept-ldp accept-rsvp discard-all ];
     export ee;
     group 1 {
  	type internal;
- 	local-address 10.0.3.4;
+ 	local-address 10.0.3.7;
  	local-as 65000;
  	neighbor 10.0.3.3;
     }
@@ -99,7 +99,7 @@ level 1 wide-metrics-only;
  policy-statement isis-export {
  	term 1 {
  	from {
- 	route-filter 10.0.5.0/24 exact;
+ 	route-filter 10.0.12.0/24 exact;
  	route-filter 10.0.4.0/22 exact;
  }
  to level 2;
