@@ -34,24 +34,7 @@ function generatePrettyDiff( parsedDiff ) {
 
 	for ( var file in parsedDiff ) {
 		diffHtml +=
-		"<div class='container'>" +
-				"<div class='navbar'>" +
-				  "<img src='../assets/login.png' class='logo'>" +
-				  "<nav>" +
-					"<ul id='menuList'>" +
-					  "<li><a>Home</a></li>" +
-					  "<li><a>About us</a></li>" +
-					"</ul>" +
-				  "</nav>" +
-				  "<img src='../assets/list.svg' class='menu-icon' onclick='togglemenu()'>"+
-				"</div>" +
-			  "</div>" +
-			"<h2>" +
-				file +
-				"<button class='copy' onclick=" +
-					"'navigator.clipboard.writeText(\"" + file + "\")'" +
-				">copy path</button>" +
-			"</h2>" +
+		 "" +
 			"<div class='file-diff'><div>" +
 				markUpDiff( parsedDiff[ file ] ) +
 			"</div></div>";

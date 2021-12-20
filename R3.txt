@@ -1,0 +1,127 @@
+logical-systems {
+  R4 {
+   interfaces {
+    ge-1/1/5 {
+     unit 0 {
+      family inet {
+       address 10.0.2.6/30;
+     }
+      family iso;
+      family mpls;
+    }
+  }
+  lo0 {
+   unit 4 {
+    family inet {
+     filter {
+       input-list [ accept-common-services accept-ospf accept-rip
+accept-bfd accept-bgp accept-ldp accept-rsvp discard-all ];
+	}
+	 address 10.0.3.4/32;
+ }
+	 family iso {
+	    address 49.0002.0100.0000.3004.00;
+         }
+      }
+    }
+ }
+ protocols {
+  rsvp {
+   interface ge-1/1/5.0;
+     interface all;
+ }
+ mpls {
+   label-switched-path R4-to-R3 {
+      to 10.0.3.3;
+  }
+   interface ge-1/1/5.0;
+ }
+ bgp {
+    export ee;
+    group 1 {
+ 	type internal;
+ 	local-address 10.0.3.4;
+ 	local-as 65000;
+ 	neighbor 10.0.3.3;
+    }
+ }
+ isis {
+ 	export isis-export;
+ 	reference-bandwidth 1g;
+ 	lsp-lifetime 3600;
+ 	traffic-engineering {
+ 	family inet {
+ 	shortcuts;
+     }
+ }
+ level 2 {
+ 	authentication-key “$9$oEZDk9Cu0Ic”; ## SECRET-DATA
+ 	authentication-type simple;
+ }
+level 1 wide-metrics-only;
+ 	interface all {
+ 	level 1 disable;
+ 	level 2 {
+ 	hello-authentication-key “$9$hT7yeWg4ZGi.”; ## SECRET-DATA
+ 	hello-authentication-type md5;
+     }
+   }
+ }
+ ospf {
+ 	export ee;
+ 	area 0.0.0.0 {
+ 	interface ge-1/1/5.0 {
+ 	bfd-liveness-detection {
+ 	minimum-interval 150;
+ 	multiplier 3;
+      }
+    }
+   }
+ }
+ ldp {
+ 	interface lo0.4;
+ 	neighbor 10.0.3.3;
+ }
+ rip {
+ 	group 1 {
+ 	export ee;
+ 	neighbor ge-1/1/5.0;
+      }
+    }
+ }
+ policy-options {
+ 	policy-statement ee {
+ 	term 1 {
+ 	from protocol aggregate;
+ 	then accept;
+     }
+ }
+ policy-statement isis-export {
+ 	term 1 {
+ 	from {
+ 	route-filter 10.0.5.0/24 exact;
+ 	route-filter 10.0.4.0/22 exact;
+ }
+ to level 2;
+ 	then accept;
+ }
+ term 2 {
+ 	from {
+ 	  route-filter 10.0.4.0/22 longer;
+ }
+to level 2;
+ then reject;
+ }
+ }
+ }
+ routing-options {
+ 	static {
+ 	  route 2.2.2.2/32 receive;
+ }
+ aggregate {
+ 	route 10.0.4.0/22;
+ 	route 2.0.0.0/8;
+ }
+ }
+ }
+}
